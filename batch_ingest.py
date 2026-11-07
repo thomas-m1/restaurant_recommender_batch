@@ -30,9 +30,9 @@ DB_URL = os.getenv("DATABASE_URL")
 print("Using DB:", DB_URL)
 HEADERS = {"Authorization": f"Bearer {API_KEY}"}
 
-# Bain Toronto coordinates
-BAIN_LAT = 43.670116
-BAIN_LON = -79.385757
+# Default search origin: Toronto City Hall
+DEFAULT_LAT = 43.6534
+DEFAULT_LON = -79.3841
 
 # SQLAlchemy setup
 Base = declarative_base()
@@ -128,7 +128,7 @@ def upsert_business(data, tag, stats):
         if lat is None or lon is None:
             stats["skipped"]["missing_coordinates"] = stats["skipped"].get("missing_coordinates", 0) + 1
             return
-        distance = calculate_distance_km(BAIN_LAT, BAIN_LON, lat, lon)
+        distance = calculate_distance_km(DEFAULT_LAT, DEFAULT_LON, lat, lon)
 
         # Check if the business already exists
         business = session.query(Business).get(data["id"])

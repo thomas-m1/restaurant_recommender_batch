@@ -1,26 +1,40 @@
-# Restaurant Batch Ingestor
-Bain Restaurant Recommender MVP
-This script pulls restaurant data from the Yelp API based on specific search terms (e.g., "fine dining") and stores the results in a PostgreSQL database. It's designed to help teams quickly identify quality dining options near Bain’s Toronto office.
+# Restaurant Recommender — Batch Importer
 
-## What It Does
+A Python importer that pulls Toronto restaurant data from the Yelp API and stores it in PostgreSQL for the [API server](https://github.com/thomas-m1/restaurant_recommender_server) and [React client](https://github.com/thomas-m1/restaurant_recommender_client).
 
-- Queries Yelp for restaurant data using defined search terms
-- Skips restaurants with low ratings, few reviews, or that are closed
-- Calculates distance from Bain's Toronto office using latitude/longitude
-- Enriches data with fields like ambience, noise level, good for groups, outdoor seating, etc.
-- Saves all results to a PostgreSQL database using SQLAlchemy
-- Logs each batch run with timestamped output
+## Features
 
-## How to Run
+- Searches restaurants by occasion and dining preferences
+- Skips closed restaurants and results with low ratings or few reviews
+- Calculates distance from Toronto City Hall
+- Enriches results with available dining attributes and business hours
+- Updates existing records and logs each batch run
 
-1. Clone the repository
-2. Create a `.env` file with the following variables:<br>
-   YELP_API_KEY=your_yelp_api_key<br>
-   DATABASE_URL=your_postgres_db_url
-3. Run the script:
-   python batch_ingest.py
+## Local development
 
-Notes
-To control how many results are fetched per search term, update this line in the script:<br>
-for offset in range(0, 100, 50):<br>
-Replace 100 with the total number of results you want to fetch per term (in multiples of 50).
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Create a `.env` file:
+
+```dotenv
+YELP_API_KEY=your_yelp_api_key
+DATABASE_URL=postgresql://restaurant_user:restaurant_password@localhost:5432/restaurant_db
+```
+
+Start PostgreSQL, then run:
+
+```sh
+python batch_ingest.py
+```
+
+The importer creates the `businesses` table when needed. The server's Alembic migrations create the recommendations table afterward. Keep credentials and batch logs out of version control.
+
+## Configuration
+
+Search terms are defined in `SCENARIO_TERMS`. The pagination loop controls the number of results fetched per term in increments of 50, subject to Yelp API limits.
+
+The default reference coordinates are `DEFAULT_LAT` and `DEFAULT_LON`, set to Toronto City Hall. Reingest existing records when changing the distance origin. The database field `distance_from_office_km` retains its original name for compatibility with the API and client.
